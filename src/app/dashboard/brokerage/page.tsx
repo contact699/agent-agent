@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { SignOutButton } from "@/components/sign-out-button";
 import { AgentDiscoveryFeed } from "@/components/agent-discovery-feed";
+import ConnectedAgents from "@/components/connected-agents";
 
 // Helper to safely get wishList as string array
 function getWishList(wishList: unknown): string[] {
@@ -71,6 +72,28 @@ function serializePitchedAgents(pitches: Array<{
   }));
 }
 
+// Serialize connected agents (from paid pitches) for the ConnectedAgents component
+function serializeConnectedAgents(pitches: Array<{
+  id: string;
+  createdAt: Date;
+  agent: {
+    id: string;
+    name: string | null;
+    yearsExperience: number;
+    salesVolume: number;
+    licenseNumber: string;
+  };
+}>) {
+  return pitches.map((pitch) => ({
+    id: pitch.agent.id,
+    name: pitch.agent.name || "Unknown Agent",
+    licenseNumber: pitch.agent.licenseNumber,
+    yearsExperience: pitch.agent.yearsExperience,
+    salesVolume: pitch.agent.salesVolume,
+    connectedAt: pitch.createdAt.toISOString(),
+  }));
+}
+
 export default async function BrokerageDashboardPage() {
   const session = await getServerSession(authOptions);
 
@@ -118,6 +141,18 @@ export default async function BrokerageDashboardPage() {
   const paidPitches = brokerage.pitchesSent.filter(
     (p) => p.paymentStatus === "PAID"
   );
+
+  // Query paid pitches with agent data for the ConnectedAgents component
+  const connectedAgentPitches = await prisma.pitch.findMany({
+    where: {
+      brokerageId: brokerage.id,
+      paymentStatus: "PAID",
+    },
+    include: {
+      agent: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -251,7 +286,7 @@ export default async function BrokerageDashboardPage() {
           </div>
 
           {/* Agent Discovery Feed */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-900">
@@ -268,6 +303,11 @@ export default async function BrokerageDashboardPage() {
                 pitchedAgents={serializePitchedAgents(brokerage.pitchesSent)}
               />
             </div>
+
+            {/* Connected Agents Section */}
+            <ConnectedAgents
+              agents={serializeConnectedAgents(connectedAgentPitches)}
+            />
           </div>
         </div>
       </main>
