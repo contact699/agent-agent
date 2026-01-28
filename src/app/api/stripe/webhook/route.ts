@@ -82,8 +82,7 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case "checkout.session.expired":
-      case "payment_intent.payment_failed": {
+      case "checkout.session.expired": {
         const session = event.data.object as Stripe.Checkout.Session;
         const pitchId = session.metadata?.pitchId;
 
