@@ -4,6 +4,16 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { sendPitchReceivedEmail } from "@/lib/email";
 
+// Type for pitch with included agent from Prisma query
+interface PitchWithAgent {
+  paymentStatus: string;
+  agent: {
+    name: string | null;
+    licenseNumber: string;
+  };
+  [key: string]: unknown;
+}
+
 // GET - Get pitches (for brokerage: sent pitches, for agent: received pitches)
 export async function GET() {
   try {
@@ -45,7 +55,7 @@ export async function GET() {
       });
 
       // Filter out personal info for unpaid pitches
-      const sanitizedPitches = pitches.map((pitch) => ({
+      const sanitizedPitches = (pitches as PitchWithAgent[]).map((pitch) => ({
         ...pitch,
         agent: {
           ...pitch.agent,
