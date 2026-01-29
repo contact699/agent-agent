@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { WISH_LIST_OPTIONS } from "@/lib/constants";
+import { WISH_LIST_OPTIONS, WISH_LIST_CATEGORIES } from "@/lib/constants";
 
 interface Agent {
   id: string;
@@ -40,6 +40,22 @@ interface AgentDiscoveryFeedProps {
   pitchedAgents?: PitchedAgent[];
 }
 
+// Experience filter options
+const EXPERIENCE_OPTIONS = [
+  { value: 0, label: "Any experience" },
+  { value: 2, label: "2+ years" },
+  { value: 5, label: "5+ years" },
+  { value: 10, label: "10+ years" },
+];
+
+// Volume filter options
+const VOLUME_OPTIONS = [
+  { value: 0, label: "Any volume" },
+  { value: 500000, label: "$500K+" },
+  { value: 1000000, label: "$1M+" },
+  { value: 5000000, label: "$5M+" },
+];
+
 export function AgentDiscoveryFeed({
   agents,
   brokerageId,
@@ -52,6 +68,12 @@ export function AgentDiscoveryFeed({
   const [loading, setLoading] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
+
+  // Filter state
+  const [minExperience, setMinExperience] = useState(0);
+  const [minVolume, setMinVolume] = useState(0);
+  const [selectedWishListFilters, setSelectedWishListFilters] = useState<string[]>([]);
+  const [showWishListDropdown, setShowWishListDropdown] = useState(false);
 
   // Create a map of agentId -> pitch info for quick lookup
   const pitchMap = new Map<string, PitchedAgent>();
@@ -179,6 +201,20 @@ export function AgentDiscoveryFeed({
     }
   };
 
+  // Toggle wish list filter
+  const toggleWishListFilter = (id: string) => {
+    setSelectedWishListFilters((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setMinExperience(0);
+    setMinVolume(0);
+    setSelectedWishListFilters([]);
+  };
+
   // Combine available agents and pitched agents for display
   // Available agents = not pitched yet
   // Pitched agents = agents with existing pitches
@@ -187,36 +223,38 @@ export function AgentDiscoveryFeed({
     ...pitchedAgents.map((p) => p.agent),
   ];
 
-  if (allAgentsToDisplay.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg
-            className="w-8 h-8 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-        </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          No agents available
-        </h3>
-        <p className="text-gray-600">
-          Check back later for new talent!
-        </p>
-      </div>
-    );
-  }
+  // Apply client-side filters
+  const filteredAgents = useMemo(() => {
+    return allAgentsToDisplay.filter((agent) => {
+      // Filter by minimum experience
+      if (agent.yearsExperience < minExperience) {
+        return false;
+      }
+
+      // Filter by minimum sales volume
+      if (agent.salesVolume < minVolume) {
+        return false;
+      }
+
+      // Filter by wish list items (agent must have at least one of the selected items)
+      if (selectedWishListFilters.length > 0) {
+        const agentWishList = agent.wishList as string[];
+        const hasMatchingWishList = selectedWishListFilters.some((filter) =>
+          agentWishList.includes(filter)
+        );
+        if (!hasMatchingWishList) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allAgentsToDisplay, minExperience, minVolume, selectedWishListFilters]);
+
+  const hasActiveFilters = minExperience > 0 || minVolume > 0 || selectedWishListFilters.length > 0;
 
   // Sort agents by match score
-  const sortedAgents = [...allAgentsToDisplay].sort(
+  const sortedAgents = [...filteredAgents].sort(
     (a, b) => calculateMatchScore(b) - calculateMatchScore(a)
   );
 
@@ -274,10 +312,235 @@ export function AgentDiscoveryFeed({
 
   return (
     <div>
+      {/* Filter Section */}
+      <div className="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Experience Filter */}
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Experience
+            </label>
+            <select
+              value={minExperience}
+              onChange={(e) => setMinExperience(parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {EXPERIENCE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Volume Filter */}
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Sales Volume
+            </label>
+            <select
+              value={minVolume}
+              onChange={(e) => setMinVolume(parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {VOLUME_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Wish List Filter */}
+          <div className="flex-1 min-w-[200px] relative">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Looking For
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowWishListDropdown(!showWishListDropdown)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-left bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent flex items-center justify-between"
+            >
+              <span className="truncate">
+                {selectedWishListFilters.length === 0
+                  ? "Any requirements"
+                  : `${selectedWishListFilters.length} selected`}
+              </span>
+              <svg
+                className={`w-4 h-4 ml-2 transition-transform ${
+                  showWishListDropdown ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {/* Wish List Dropdown */}
+            {showWishListDropdown && (
+              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                {Object.entries(WISH_LIST_CATEGORIES).map(([categoryKey, categoryLabel]) => {
+                  const categoryOptions = WISH_LIST_OPTIONS.filter(
+                    (opt) => opt.category === categoryKey
+                  );
+                  if (categoryOptions.length === 0) return null;
+
+                  return (
+                    <div key={categoryKey}>
+                      <div className="px-3 py-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {categoryLabel}
+                      </div>
+                      {categoryOptions.map((option) => (
+                        <label
+                          key={option.id}
+                          className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedWishListFilters.includes(option.id)}
+                            onChange={() => toggleWishListFilter(option.id)}
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">
+                            {option.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Clear Filters Button */}
+          {hasActiveFilters && (
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Active Filters Display */}
+        {selectedWishListFilters.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {selectedWishListFilters.map((filterId) => {
+              const option = WISH_LIST_OPTIONS.find((o) => o.id === filterId);
+              return (
+                <span
+                  key={filterId}
+                  className="inline-flex items-center px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
+                >
+                  {option?.label || filterId}
+                  <button
+                    type="button"
+                    onClick={() => toggleWishListFilter(filterId)}
+                    className="ml-1.5 hover:text-blue-900"
+                  >
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Results Count */}
+        <div className="mt-3 text-sm text-gray-500">
+          Showing {filteredAgents.length} of {allAgentsToDisplay.length} agents
+        </div>
+      </div>
+
       {/* Global error display */}
       {error && (
         <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           {error}
+        </div>
+      )}
+
+      {/* No Results After Filtering */}
+      {filteredAgents.length === 0 && allAgentsToDisplay.length > 0 && (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No agents match your filters
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Try adjusting your search criteria
+          </p>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
+
+      {/* No Agents Available at All */}
+      {allAgentsToDisplay.length === 0 && (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No agents available
+          </h3>
+          <p className="text-gray-600">
+            Check back later for new talent!
+          </p>
         </div>
       )}
 
