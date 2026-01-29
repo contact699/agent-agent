@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { sendPitchAcceptedEmail } from "@/lib/email";
+import { sendPitchDeclinedEmail } from "@/lib/email";
 
-// POST - Accept a pitch (agent only)
+// POST - Decline a pitch (agent only)
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -19,7 +19,7 @@ export async function POST(
 
     if (session.user.role !== "AGENT") {
       return NextResponse.json(
-        { error: "Only agents can accept pitches" },
+        { error: "Only agents can decline pitches" },
         { status: 403 }
       );
     }
@@ -58,27 +58,11 @@ export async function POST(
       );
     }
 
-    // Update pitch status to accepted and return updated pitch data
-    // The brokerage will then see this in their dashboard and can pay via the checkout endpoint
-    const updatedPitch = await prisma.pitch.update({
+    await prisma.pitch.update({
       where: { id: pitchId },
       data: {
-        status: "ACCEPTED",
+        status: "DECLINED",
         respondedAt: new Date(),
-      },
-      include: {
-        brokerage: {
-          select: {
-            id: true,
-            companyName: true,
-          },
-        },
-        agent: {
-          select: {
-            id: true,
-            anonymousId: true,
-          },
-        },
       },
     });
 
@@ -89,19 +73,16 @@ export async function POST(
     });
 
     if (brokerageUser?.email) {
-      sendPitchAcceptedEmail({
+      sendPitchDeclinedEmail({
         brokerageEmail: brokerageUser.email,
         agentAnonymousId: agent.anonymousId,
         pitchId: pitchId,
       }).catch((err) => console.error("Email send failed:", err));
     }
 
-    return NextResponse.json({
-      message: "Pitch accepted",
-      pitch: updatedPitch,
-    });
+    return NextResponse.json({ message: "Pitch declined" });
   } catch (error) {
-    console.error("Error accepting pitch:", error);
+    console.error("Error declining pitch:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

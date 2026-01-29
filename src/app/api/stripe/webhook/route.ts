@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe";
 import prisma from "@/lib/prisma";
 import Stripe from "stripe";
+import { sendPaymentCompleteEmail } from "@/lib/email";
 
 // Disable body parsing - Stripe requires raw body for webhook verification
 export const runtime = "nodejs";
@@ -67,6 +68,14 @@ export async function POST(request: NextRequest) {
         // Reveal agent identity by setting isAnonymous to false
         const pitch = await prisma.pitch.findUnique({
           where: { id: pitchId },
+          include: {
+            agent: {
+              include: {
+                user: { select: { email: true } },
+              },
+            },
+            brokerage: true,
+          },
         });
 
         if (pitch) {
@@ -76,6 +85,16 @@ export async function POST(request: NextRequest) {
               isAnonymous: false,
             },
           });
+
+          // Send email notification to agent (fire-and-forget, don't block response)
+          if (pitch.agent.user.email) {
+            sendPaymentCompleteEmail({
+              agentEmail: pitch.agent.user.email,
+              agentName: pitch.agent.name,
+              brokerageCompanyName: pitch.brokerage.companyName,
+              pitchId: pitchId,
+            }).catch((err) => console.error("Email send failed:", err));
+          }
         }
 
         console.log(`Payment completed for pitch ${pitchId}`);
