@@ -480,7 +480,7 @@ export function PitchInbox({ pitches }: PitchInboxProps) {
                         <div>
                           <h5 className="font-semibold text-yellow-800">Awaiting Payment</h5>
                           <p className="text-sm text-yellow-700">
-                            You've accepted this pitch. Waiting for {selectedPitch.brokerage.companyName} to complete payment before contact details are shared.
+                            You&apos;ve accepted this pitch. Waiting for {selectedPitch.brokerage.companyName} to complete payment before contact details are shared.
                           </p>
                         </div>
                       </div>

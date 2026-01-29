@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // This file sets up polyfills before any tests run
 // It uses require() to ensure synchronous loading
 

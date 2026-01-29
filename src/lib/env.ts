@@ -6,7 +6,7 @@ const requiredEnvVars = [
   "STRIPE_WEBHOOK_SECRET",
 ] as const;
 
-const optionalEnvVars = [
+export const optionalEnvVars = [
   "RESEND_API_KEY",
   "FROM_EMAIL",
   "STRIPE_CONTACT_FEE_CENTS",

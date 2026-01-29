@@ -58,6 +58,7 @@ const VOLUME_OPTIONS = [
 
 export function AgentDiscoveryFeed({
   agents,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   brokerageId,
   standardOffer,
   pitchedAgents = [],
@@ -764,7 +765,7 @@ export function AgentDiscoveryFeed({
                 {(selectedAgent.wishList as string[]).length > 0 && (
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h4 className="font-semibold text-gray-900 mb-2">
-                      What They're Looking For
+                      What They&apos;re Looking For
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {(selectedAgent.wishList as string[]).map((wish) => (
