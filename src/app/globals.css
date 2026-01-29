@@ -225,11 +225,22 @@ body {
   animation: red-glow-pulse 2s ease-in-out infinite;
 }
 
+/* Slide in from right animation */
+.animate-slide-in-right {
+  animation: slide-in-right 0.5s ease-out forwards;
+}
+
+/* Slide in from left animation */
+.animate-slide-in-left {
+  animation: slide-in-left 0.5s ease-out forwards;
+}
+
 /* Glass-morphism effect */
 .glass {
   background: var(--card-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  -moz-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -289,7 +300,9 @@ body {
   .animate-fade-in-up,
   .animate-stagger-in,
   .animate-button-pulse,
-  .animate-red-glow {
+  .animate-red-glow,
+  .animate-slide-in-right,
+  .animate-slide-in-left {
     animation: none;
   }
 
