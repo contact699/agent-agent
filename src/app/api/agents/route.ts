@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { JsonValue } from "@prisma/client/runtime/library";
 
 interface AgentResult {
   id: string;
   anonymousId: string;
   yearsExperience: number;
   salesVolume: number;
-  wishList: JsonValue;
+  wishList: unknown;
   isAnonymous: boolean;
 }
 
