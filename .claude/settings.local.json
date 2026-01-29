@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:subagent-driven-development)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git diff:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test:*)",
+      "Bash(node --version:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run build:*)",
+      "Bash(git restore:*)",
+      "Bash(gh repo create:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(npx vercel --prod)",
+      "Bash(npx vercel:*)",
+      "Bash(git push)",
+      "Bash(ls -la \"C:\\\\Users\\\\computer\\\\Downloads\\\\Agent Agent\\\\agent-agent\\\\src\\\\components\\\\landing\"\" 2>/dev/null || dir \"C:UserscomputerDownloadsAgent Agentagent-agentsrccomponentslanding \")",
+      "Bash(dir \"C:\\\\Users\\\\computer\\\\Downloads\\\\Agent Agent\\\\agent-agent\\\\src\\\\components\\\\landing\\\\calculator\")",
+      "Bash(dir \"C:\\\\Users\\\\computer\\\\Downloads\\\\Agent Agent\\\\agent-agent\")"
+    ]
+  }
+}
