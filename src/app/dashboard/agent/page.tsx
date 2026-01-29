@@ -6,9 +6,31 @@ import Link from "next/link";
 import { SignOutButton } from "@/components/sign-out-button";
 import { PitchInbox } from "@/components/pitch-inbox";
 
+// Define getPitches first so its return type can be used
+async function getPitches(agentId: string) {
+  return prisma.pitch.findMany({
+    where: { agentId },
+    include: {
+      brokerage: {
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+// Type for pitches from getPitches
+type PitchFromDb = Awaited<ReturnType<typeof getPitches>>[number];
+
 // Helper to serialize Prisma data for client components
-function serializePitches(pitches: Awaited<ReturnType<typeof getPitches>>) {
-  return pitches.map((pitch) => {
+function serializePitches(pitches: PitchFromDb[]) {
+  return pitches.map((pitch: PitchFromDb) => {
     // Only include contact email if payment is completed
     const contactEmail = pitch.paymentStatus === "PAID" ? pitch.brokerage.user.email : null;
 
@@ -30,24 +52,6 @@ function serializePitches(pitches: Awaited<ReturnType<typeof getPitches>>) {
         updatedAt: pitch.brokerage.updatedAt.toISOString(),
       },
     };
-  });
-}
-
-async function getPitches(agentId: string) {
-  return prisma.pitch.findMany({
-    where: { agentId },
-    include: {
-      brokerage: {
-        include: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
   });
 }
 
