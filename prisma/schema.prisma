@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          UserRole
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  agent      Agent?
+  brokerage  Brokerage?
+}
+
+enum UserRole {
+  AGENT
+  BROKERAGE
+}
+
+// ============================================
+// AGENT PROFILE
+// ============================================
+
+model Agent {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Profile Info
+  name            String?
+  licenseNumber   String
+  yearsExperience Int
+  salesVolume     Float    // Last 12 months in dollars
+  currentBroker   String?
+
+  // Wish List - stored as JSONB
+  // Example: ["90_10_SPLIT", "HEALTH_INSURANCE", "FOLLOW_UP_BOSS_CRM"]
+  wishList        Json     @default("[]")
+
+  // Privacy
+  isAnonymous     Boolean  @default(true)
+  anonymousId     String   @unique @default(cuid()) // Used for display: "Anonymous Agent #XXX"
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  pitchesReceived Pitch[]
+}
+
+// ============================================
+// BROKERAGE PROFILE
+// ============================================
+
+model Brokerage {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Profile Info
+  companyName String
+  logoUrl     String?
+  location    String
+  description String?
+
+  // Standard Offer - stored as JSONB
+  // Example: { "splitPercent": 90, "capAmount": 25000, "monthlyFee": 500 }
+  standardOffer Json
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  pitchesSent Pitch[]
+}
+
+// ============================================
+// PITCH SYSTEM
+// ============================================
+
+model Pitch {
+  id           String      @id @default(cuid())
+  
+  agentId      String
+  agent        Agent       @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  brokerageId  String
+  brokerage    Brokerage   @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+
+  // Pitch Content
+  message      String
+  offerDetails Json        // Snapshot of the offer at time of pitch
+
+  // Status
+  status        PitchStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  stripePaymentId String?
+
+  // Timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  respondedAt  DateTime?
+  paidAt       DateTime?
+
+  @@unique([agentId, brokerageId]) // One pitch per agent-brokerage pair
+}
+
+enum PitchStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
