@@ -122,7 +122,7 @@ export default async function BrokerageDashboardPage() {
   }
 
   // Get all agents that haven't been pitched by this brokerage
-  const pitchedAgentIds = brokerage.pitchesSent.map((p) => p.agentId);
+  const pitchedAgentIds = brokerage.pitchesSent.map((p: { agentId: string }) => p.agentId);
   
   const availableAgents = await prisma.agent.findMany({
     where: {
@@ -133,13 +133,13 @@ export default async function BrokerageDashboardPage() {
   });
 
   const pendingPitches = brokerage.pitchesSent.filter(
-    (p) => p.status === "PENDING"
+    (p: { status: string }) => p.status === "PENDING"
   );
   const acceptedPitches = brokerage.pitchesSent.filter(
-    (p) => p.status === "ACCEPTED"
+    (p: { status: string }) => p.status === "ACCEPTED"
   );
   const paidPitches = brokerage.pitchesSent.filter(
-    (p) => p.paymentStatus === "PAID"
+    (p: { paymentStatus: string }) => p.paymentStatus === "PAID"
   );
 
   // Query paid pitches with agent data for the ConnectedAgents component
