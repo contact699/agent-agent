@@ -1,8 +1,21 @@
 @import "tailwindcss";
 
 :root {
+  /* Existing theme variables */
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Landing page variables */
+  --landing-bg: #0A0F1C;
+  --landing-bg-lighter: #111827;
+  --card-bg: rgba(30, 41, 59, 0.8);
+  --accent-blue: #3B82F6;
+  --accent-blue-glow: rgba(59, 130, 246, 0.5);
+  --pain-red: #EF4444;
+  --pain-orange: #F97316;
+  --success-green: #10B981;
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
 }
 
 @theme inline {
@@ -23,4 +36,268 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ========================================
+   KEYFRAME ANIMATIONS
+   ======================================== */
+
+/* Float animation for floating orbs */
+@keyframes float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(10px, -15px) scale(1.05);
+  }
+  50% {
+    transform: translate(-5px, -25px) scale(1);
+  }
+  75% {
+    transform: translate(-15px, -10px) scale(0.95);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* Gradient shift for background animations */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Pulse glow effect */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--accent-blue-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--accent-blue-glow), 0 0 60px var(--accent-blue-glow);
+  }
+}
+
+/* Fade in from below */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger fade in for lists */
+@keyframes stagger-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide in from right */
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Slide in from left */
+@keyframes slide-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Button pulse for CTAs */
+@keyframes button-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Red glow pulse for pain numbers */
+@keyframes red-glow-pulse {
+  0%, 100% {
+    text-shadow: 0 0 10px var(--pain-red), 0 0 20px var(--pain-red);
+  }
+  50% {
+    text-shadow: 0 0 20px var(--pain-red), 0 0 40px var(--pain-red), 0 0 60px var(--pain-red);
+  }
+}
+
+/* Particle burst effect */
+@keyframes particle-burst {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Accordion expand for FAQ */
+@keyframes accordion-expand {
+  0% {
+    max-height: 0;
+    opacity: 0;
+  }
+  100% {
+    max-height: 500px;
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Float animations */
+.animate-float {
+  animation: float 30s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 30s ease-in-out infinite;
+  animation-delay: -15s;
+}
+
+.animate-float-slow {
+  animation: float 45s ease-in-out infinite;
+}
+
+/* Gradient animation */
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Pulse glow animation */
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Fade in up animation */
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* Stagger in animation */
+.animate-stagger-in {
+  animation: stagger-in 0.5s ease-out forwards;
+}
+
+/* Button pulse animation */
+.animate-button-pulse {
+  animation: button-pulse 2s ease-in-out infinite;
+}
+
+/* Red glow animation for pain points */
+.animate-red-glow {
+  animation: red-glow-pulse 2s ease-in-out infinite;
+}
+
+/* Glass-morphism effect */
+.glass {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glass hover state */
+.glass-hover {
+  transition: all 0.3s ease;
+}
+
+.glass-hover:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* 3D tilt hover effect */
+.tilt-hover {
+  transition: transform 0.3s ease;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.tilt-hover:hover {
+  transform: rotateX(5deg) rotateY(-5deg) translateZ(10px);
+}
+
+/* Glow focus for inputs */
+.glow-focus {
+  transition: all 0.3s ease;
+}
+
+.glow-focus:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px var(--accent-blue-glow), 0 0 20px var(--accent-blue-glow);
+}
+
+/* ========================================
+   REDUCED MOTION ACCESSIBILITY
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-float,
+  .animate-float-delayed,
+  .animate-float-slow,
+  .animate-gradient,
+  .animate-pulse-glow,
+  .animate-fade-in-up,
+  .animate-stagger-in,
+  .animate-button-pulse,
+  .animate-red-glow {
+    animation: none;
+  }
+
+  .tilt-hover:hover {
+    transform: none;
+  }
+
+  .glass-hover:hover {
+    transform: none;
+  }
 }
